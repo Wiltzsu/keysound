@@ -1,0 +1,4 @@
+keysound
+*.o
+soundpack/
+miniaudio.h
