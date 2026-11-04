@@ -8,6 +8,7 @@
 #define MA_ENABLE_PULSEAUDIO
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
+#define SOUND_DIR "/home/william/keysound/soundpack"
 
 int main(int argc, char **argv) {
     ma_engine engine;
@@ -43,13 +44,13 @@ int main(int argc, char **argv) {
 
         if (ev.type == EV_KEY && ev.value == 1) {
             if (ev.code == KEY_SPACE)
-                ma_engine_play_sound(&engine, "soundpack/space.wav", NULL);
+                ma_engine_play_sound(&engine, SOUND_DIR "/space.wav", NULL);
             else if (ev.code == KEY_BACKSPACE)
-                ma_engine_play_sound(&engine, "soundpack/backspace.wav", NULL);
+                ma_engine_play_sound(&engine, SOUND_DIR "/backspace.wav", NULL);
             else if (ev.code == KEY_ENTER)
-                ma_engine_play_sound(&engine, "soundpack/enter.wav", NULL);
+                ma_engine_play_sound(&engine, SOUND_DIR "/enter.wav", NULL);
             else
-                ma_engine_play_sound(&engine, "soundpack/click.wav", NULL);
+                ma_engine_play_sound(&engine, SOUND_DIR "/click.wav", NULL);
         }
     }
 
