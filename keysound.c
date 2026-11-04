@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <linux/input.h>
+#include <linux/input-event-codes.h>
 #define MA_ENABLE_ONLY_SPECIFIC_BACKENDS
 #define MA_ENABLE_PULSEAUDIO
 #define MINIAUDIO_IMPLEMENTATION
@@ -20,10 +21,8 @@ int main(int argc, char **argv) {
 
     if (fd < 0) {
         perror("open");
-        return 1
+        return 1;
     }
-
-    printf("opened %s\n", argv[1]);
 
     if (ma_engine_init(NULL, &engine) != MA_SUCCESS) {
         fprintf(stderr, "audio init failed\n");
@@ -43,10 +42,14 @@ int main(int argc, char **argv) {
         }
 
         if (ev.type == EV_KEY && ev.value == 1) {
-            ma_result pr = ma_engine_play_sound(&engine, "soundpack/click.wav", NULL);
-            if (pr != MA_SUCCESS)
-            fprintf(stderr, "play: %s\n", ma_result_description(pr));
-            printf("key down code=%u\n", ev.code);
+            if (ev.code == KEY_SPACE)
+                ma_engine_play_sound(&engine, "soundpack/space.wav", NULL);
+            else if (ev.code == KEY_BACKSPACE)
+                ma_engine_play_sound(&engine, "soundpack/backspace.wav", NULL);
+            else if (ev.code == KEY_ENTER)
+                ma_engine_play_sound(&engine, "soundpack/enter.wav", NULL);
+            else
+                ma_engine_play_sound(&engine, "soundpack/click.wav", NULL);
         }
     }
 
