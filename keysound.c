@@ -59,14 +59,13 @@ int main(int argc, char **argv) {
             ma_sound *v = &voices[sound_tracker];
             sound_tracker = (sound_tracker + 1) % 16; // wrap 15 -> 0
 
-            // ms -> frames. TEMP: Space slice from config.json for every key
+            // where the Space sound starts and ends in the pack file (for now every key uses Space)
             ma_uint64 begin = 4353.74 * rate / 1000;
             ma_uint64 end = 4588.84 * rate / 1000;
 
             ma_data_source_set_range_in_pcm_frames(ma_sound_get_data_source(v), begin, end);
 
-            // with a range set, 0 = start of the slice. start() alone won't rewind
-            // a voice that hasn't reached its end
+            // rewind to the start of the slice, then play
             ma_sound_seek_to_pcm_frame(v, 0);
             ma_sound_start(v);
         }
