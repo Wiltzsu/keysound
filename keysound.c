@@ -12,6 +12,9 @@
 
 int main(int argc, char **argv) {
     ma_engine engine;
+    // voice pool: one ma_sound plays one thing at a time, 16 lets fast typing overlap
+    ma_sound voices[16];
+    int sound_tracker = 0; // next voice to use
 
     if (argc != 2) {
         fprintf(stderr, "usage: %s /dev/input/eventN\n", argv[0]);
@@ -31,7 +34,17 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    // DECODE: wav is decoded to PCM once, all voices share that buffer
+    for (int i = 0; i < 16; i++) {
+        ma_sound_init_from_file(&engine, SOUND_DIR"/concatenated_audio.wav", MA_SOUND_FLAG_DECODE, NULL, NULL, &voices[i]);
+    }
+
     struct input_event ev;
+    ma_uint32 rate;
+
+    // engine rate (48000 here), not the wav's 44100: DECODE resamples. don't hardcode
+    ma_sound_get_data_format(&voices[0], NULL, NULL, &rate, NULL, 0);
+    printf("rate: %u\n", rate);
 
     while (1) {
 	    ssize_t n = read(fd, &ev, sizeof ev);
@@ -43,14 +56,19 @@ int main(int argc, char **argv) {
         }
 
         if (ev.type == EV_KEY && ev.value == 1) {
-            if (ev.code == KEY_SPACE)
-                ma_engine_play_sound(&engine, SOUND_DIR "/space.wav", NULL);
-            else if (ev.code == KEY_BACKSPACE)
-                ma_engine_play_sound(&engine, SOUND_DIR "/backspace.wav", NULL);
-            else if (ev.code == KEY_ENTER)
-                ma_engine_play_sound(&engine, SOUND_DIR "/enter.wav", NULL);
-            else
-                ma_engine_play_sound(&engine, SOUND_DIR "/click.wav", NULL);
+            ma_sound *v = &voices[sound_tracker];
+            sound_tracker = (sound_tracker + 1) % 16; // wrap 15 -> 0
+
+            // ms -> frames. TEMP: Space slice from config.json for every key
+            ma_uint64 begin = 4353.74 * rate / 1000;
+            ma_uint64 end = 4588.84 * rate / 1000;
+
+            ma_data_source_set_range_in_pcm_frames(ma_sound_get_data_source(v), begin, end);
+
+            // with a range set, 0 = start of the slice. start() alone won't rewind
+            // a voice that hasn't reached its end
+            ma_sound_seek_to_pcm_frame(v, 0);
+            ma_sound_start(v);
         }
     }
 
