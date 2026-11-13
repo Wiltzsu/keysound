@@ -10,9 +10,20 @@
 #include "miniaudio.h"
 #define SOUND_DIR "/home/william/keysound/soundpack"
 
+struct slice {
+    double start_ms;
+    double end_ms;
+};
+
+static const struct slice slices[KEY_MAX + 1] = {
+    [KEY_SPACE] = {4353.74, 4588.84 },
+    [KEY_ENTER] = {3215.96, 3424.94},
+    [KEY_BACKSPACE] = {2795.10, 3030.20},
+};
+
 int main(int argc, char **argv) {
     ma_engine engine;
-    // voice pool: one ma_sound plays one thing at a time, 16 lets fast typing overlap
+    // 16 sound players, so clicks can overlap when typing fast
     ma_sound voices[16];
     int sound_tracker = 0; // next voice to use
 
@@ -34,7 +45,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // DECODE: wav is decoded to PCM once, all voices share that buffer
+    // load the pack file into memory once, all 16 players share it
     for (int i = 0; i < 16; i++) {
         ma_sound_init_from_file(&engine, SOUND_DIR"/concatenated_audio.wav", MA_SOUND_FLAG_DECODE, NULL, NULL, &voices[i]);
     }
@@ -42,7 +53,7 @@ int main(int argc, char **argv) {
     struct input_event ev;
     ma_uint32 rate;
 
-    // engine rate (48000 here), not the wav's 44100: DECODE resamples. don't hardcode
+    // how many frames per second, needed to convert ms to frames
     ma_sound_get_data_format(&voices[0], NULL, NULL, &rate, NULL, 0);
     printf("rate: %u\n", rate);
 
@@ -56,12 +67,22 @@ int main(int argc, char **argv) {
         }
 
         if (ev.type == EV_KEY && ev.value == 1) {
+            if (ev.code > KEY_MAX) {
+                continue;
+            }
+
             ma_sound *v = &voices[sound_tracker];
             sound_tracker = (sound_tracker + 1) % 16; // wrap 15 -> 0
 
-            // where the Space sound starts and ends in the pack file (for now every key uses Space)
-            ma_uint64 begin = 4353.74 * rate / 1000;
-            ma_uint64 end = 4588.84 * rate / 1000;
+            struct slice s = slices[ev.code];
+
+            if (s.end_ms == 0) {
+                s = slices[KEY_SPACE];
+            }
+
+            // where the sound starts and ends in the pack file
+            ma_uint64 begin = s.start_ms * rate / 1000;
+            ma_uint64 end = s.end_ms * rate / 1000;
 
             ma_data_source_set_range_in_pcm_frames(ma_sound_get_data_source(v), begin, end);
 
