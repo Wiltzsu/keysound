@@ -23,7 +23,10 @@ int main(int argc, char **argv) {
     }
 
     char default_dir[4096];
-    snprintf(default_dir, sizeof default_dir, "%s/.local/share/keysound/soundpack", home);
+    if (snprintf(default_dir, sizeof default_dir, "%s/.local/share/keysound/soundpack", home) >= (int)sizeof(default_dir)) {
+        fprintf(stderr, "path too long\n");
+        return 1;
+    }
     sound_dir = default_dir;
 
 
@@ -54,12 +57,15 @@ int main(int argc, char **argv) {
     }
 
     char wav_path[4096];
-    snprintf(wav_path, sizeof wav_path, "%s/concatenated_audio.wav", sound_dir);
+    if (snprintf(wav_path, sizeof wav_path, "%s/concatenated_audio.wav", sound_dir) >= (int)sizeof wav_path) {
+        fprintf(stderr, "path too long\n");
+        return 1;
+    }
 
     // load the pack file into memory once, all 16 players share it
     for (int i = 0; i < 16; i++) {
         if (ma_sound_init_from_file(&engine, wav_path, MA_SOUND_FLAG_DECODE, NULL, NULL, &voices[i]) != MA_SUCCESS) {
-            fprintf(stderr, "the path is: %s\n", wav_path);
+            fprintf(stderr, "can't load: %s\n", wav_path);
             return 1;
         }
     }
