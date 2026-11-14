@@ -15,24 +15,24 @@ curl -fsSL -o miniaudio.h \
   https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h
 
 mkdir -p soundpack
-# Put a short click.wav in soundpack/ (your own file or a Mechvibes pack slice).
+# Put the Mechvibes pack files in soundpack/ (concatenated_audio.wav + config.json).
 ```
 
-Update the wav path in `keysound.c` if you use something other than `soundpack/click.wav`.
+The per-key timings in `keymap.c` match one specific pack (`config.json` in `soundpack/`). A different pack needs a regenerated table.
 
 ## Build
 
 ```bash
-gcc -Wall -Wextra -o keysound keysound.c -lpthread -ldl -lm -lpulse
+gcc -Wall -Wextra -o keysound keysound.c keymap.c -lpthread -ldl -lm -lpulse
 ```
 
 ## Run
 
-From this directory (relative wav path):
-
 ```bash
-./keysound /dev/input/eventN
+./keysound [-d soundpack_dir] /dev/input/eventN
 ```
+
+`-d` sets the folder that holds `concatenated_audio.wav` (default: `SOUND_DIR` in `keysound.c`).
 
 Find the device: `sudo apt install evtest && sudo evtest` - pick your keyboard.
 

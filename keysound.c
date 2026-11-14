@@ -9,17 +9,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 #define SOUND_DIR "/home/william/keysound/soundpack"
-
-struct slice {
-    double start_ms;
-    double end_ms;
-};
-
-static const struct slice slices[KEY_MAX + 1] = {
-    [KEY_SPACE] = {4353.74, 4588.84 },
-    [KEY_ENTER] = {3215.96, 3424.94},
-    [KEY_BACKSPACE] = {2795.10, 3030.20},
-};
+#include "keymap.h"
 
 int main(int argc, char **argv) {
     ma_engine engine;
