@@ -8,14 +8,24 @@
 #define MA_ENABLE_PULSEAUDIO
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
-#define SOUND_DIR "/home/william/keysound/soundpack"
 #include "keymap.h"
 
 int main(int argc, char **argv) {
     ma_engine engine;
     ma_sound voices[16]; // 16 sound players, so clicks can overlap when typing fast
     int sound_tracker = 0; // next voice to use
-    const char *sound_dir = SOUND_DIR;
+    const char *home = getenv("HOME");
+    const char *sound_dir;
+
+    if (home == NULL) {
+        fprintf(stderr, "home is not set\n");
+        return 1;
+    }
+
+    char default_dir[4096];
+    snprintf(default_dir, sizeof default_dir, "%s/.local/share/keysound/soundpack", home);
+    sound_dir = default_dir;
+
 
     int opt;
     // user specifies their sound folder with -d

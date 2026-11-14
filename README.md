@@ -14,11 +14,11 @@ Play a click sound on keyboard key presses (Linux evdev + [miniaudio](https://gi
 curl -fsSL -o miniaudio.h \
   https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h
 
-mkdir -p soundpack
-# Put the Mechvibes pack files in soundpack/ (concatenated_audio.wav + config.json).
+mkdir -p ~/.local/share/keysound/soundpack
+# Put the Mechvibes pack files there (concatenated_audio.wav + config.json).
 ```
 
-The per-key timings in `keymap.c` match one specific pack (`config.json` in `soundpack/`). A different pack needs a regenerated table.
+The per-key timings in `keymap.c` match one specific pack (its `config.json`). A different pack needs a regenerated table.
 
 ## Build
 
@@ -32,7 +32,7 @@ gcc -Wall -Wextra -o keysound keysound.c keymap.c -lpthread -ldl -lm -lpulse
 ./keysound [-d soundpack_dir] /dev/input/eventN
 ```
 
-`-d` sets the folder that holds `concatenated_audio.wav` (default: `SOUND_DIR` in `keysound.c`).
+`-d` sets the folder that holds `concatenated_audio.wav` (default: `~/.local/share/keysound/soundpack`).
 
 Find the device: `sudo apt install evtest && sudo evtest` - pick your keyboard.
 
@@ -43,4 +43,8 @@ Do not run with `sudo` - audio goes to your user session.
 ## Notes
 
 - `keysound.c` enables miniaudio's PulseAudio backend so audio routes to normal desktop output (not silent HDMI ALSA).
-- Sound packs from [mechvibes.com](https://mechvibes.com/) are third-party; keep them out of git (`soundpack/` is gitignored).
+- Sound packs from [mechvibes.com](https://mechvibes.com/) are third-party; keep them out of git.
+
+## License
+
+MIT
