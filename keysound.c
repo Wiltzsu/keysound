@@ -23,16 +23,24 @@ static const struct slice slices[KEY_MAX + 1] = {
 
 int main(int argc, char **argv) {
     ma_engine engine;
-    // 16 sound players, so clicks can overlap when typing fast
-    ma_sound voices[16];
+    ma_sound voices[16]; // 16 sound players, so clicks can overlap when typing fast
     int sound_tracker = 0; // next voice to use
+    const char *sound_dir = SOUND_DIR;
 
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s /dev/input/eventN\n", argv[0]);
+    int opt;
+    // user specifies their sound folder with -d
+    while ((opt = getopt(argc, argv, "d:")) != -1) {
+        if (opt == 'd') {
+            sound_dir = optarg;
+        }
+    }
+
+    if (argc - optind != 1) {
+        fprintf(stderr, "usage: %s [-d folder] /dev/input/eventN\n", argv[0]);
 	    return 1;
     }
 
-    int fd = open(argv[1], O_RDONLY);
+    int fd = open(argv[optind], O_RDONLY);
 
     if (fd < 0) {
         perror("open");
@@ -45,9 +53,15 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    char wav_path[4096];
+    snprintf(wav_path, sizeof wav_path, "%s/concatenated_audio.wav", sound_dir);
+
     // load the pack file into memory once, all 16 players share it
     for (int i = 0; i < 16; i++) {
-        ma_sound_init_from_file(&engine, SOUND_DIR"/concatenated_audio.wav", MA_SOUND_FLAG_DECODE, NULL, NULL, &voices[i]);
+        if (ma_sound_init_from_file(&engine, wav_path, MA_SOUND_FLAG_DECODE, NULL, NULL, &voices[i]) != MA_SUCCESS) {
+            fprintf(stderr, "the path is: %s\n", wav_path);
+            return 1;
+        }
     }
 
     struct input_event ev;
